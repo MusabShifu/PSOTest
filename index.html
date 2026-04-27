@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>استمارة تجديد العضوية | إرسال إلى تليجرام</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #eef2f7 0%, #d4dfe9 100%);
+            font-family: 'Segoe UI', 'Tahoma', 'Cairo', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            max-width: 920px;
+            width: 100%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 44px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .form-header {
+            background: #1e466e;
+            background-image: linear-gradient(135deg, #0f3a5a, #1e6a9f);
+            padding: 1.8rem 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .form-header h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            letter-spacing: -0.2px;
+        }
+
+        .form-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .form-body {
+            padding: 2rem 2rem 2rem 2rem;
+        }
+
+        .field-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field-group label {
+            font-weight: 700;
+            margin-bottom: 0.55rem;
+            color: #1a2c3e;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-group label::before {
+            content: "★";
+            color: #d43f1f;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        input, textarea {
+            border: 1.8px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: 0.2s;
+            background-color: #fefefe;
+            width: 100%;
+            outline: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #1e6a9f;
+            box-shadow: 0 0 0 3px rgba(30, 106, 159, 0.2);
+            background-color: #fff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .file-area {
+            background: #f8fafc;
+            border: 1.8px dashed #b9cfec;
+            border-radius: 28px;
+            padding: 12px 16px;
+            margin-top: 4px;
+        }
+
+        .file-area input[type="file"] {
+            border: none;
+            padding: 8px 0;
+            background: transparent;
+        }
+
+        .file-note {
+            font-size: 0.7rem;
+            color: #2c4e6e;
+            margin-top: 6px;
+            margin-right: 10px;
+            font-weight: 500;
+        }
+
+        button {
+            background: linear-gradient(100deg, #1e6a9f, #0f4668);
+            border: none;
+            width: 100%;
+            padding: 15px 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            font-family: inherit;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 24px;
+            box-shadow: 0 6px 14px rgba(0, 40, 70, 0.3);
+        }
+
+        button:hover {
+            background: linear-gradient(100deg, #155a87, #0a3752);
+            transform: scale(0.98);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 14px 18px;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: 600;
+            background: #f1f5f9;
+            display: none;
+        }
+
+        .status-success {
+            background: #dff9e6;
+            color: #1e6f3f;
+            border-right: 5px solid #2ecc71;
+        }
+
+        .status-error {
+            background: #ffe6e5;
+            color: #b13b3b;
+            border-right: 5px solid #e74c3c;
+        }
+
+        .status-loading {
+            background: #eef2ff;
+            color: #1e3a8a;
+        }
+
+        .required-star {
+            color: #e03a3a;
+            font-size: 0.8rem;
+            margin-right: 4px;
+        }
+
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5f6c7a;
+            padding: 18px 0 8px 0;
+            border-top: 1px solid #e9edf2;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .form-body {
+                padding: 1.5rem;
+            }
+            .form-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1>📋 استمارة تجديد العضوية</h1>
+        <p>جميع الحقول مطلوبة | رفع السيرة الذاتية (PDF أو صورة)</p>
+    </div>
+    <div class="form-body">
+        <form id="membershipForm" enctype="multipart/form-data">
+            <!-- 1. الاسم رباعي -->
+            <div class="field-group">
+                <label>الاسم رباعي <span class="required-star">*</span></label>
+                <input type="text" id="fullName" required>
+            </div>
+
+            <!-- 2. رقم الهاتف -->
+            <div class="field-group">
+                <label>رقم الهاتف <span class="required-star">*</span></label>
+                <input type="tel" id="phone" required>
+            </div>
+
+            <!-- 3. الوظيفة (إن وجدت) -> إلزامي الآن -->
+            <div class="field-group">
+                <label>الوظيفة (إن وجدت) <span class="required-star">*</span></label>
+                <input type="text" id="job" required>
+            </div>
+
+            <!-- 4. المنصب (المكتب / اللجنة) -->
+            <div class="field-group">
+                <label>المنصب (المكتب / اللجنة) <span class="required-star">*</span></label>
+                <input type="text" id="position" required>
+            </div>
+
+            <!-- 5. السكن -->
+            <div class="field-group">
+                <label>السكن <span class="required-star">*</span></label>
+                <input type="text" id="residence" required>
+            </div>
+
+            <!-- 6. الجامعة -->
+            <div class="field-group">
+                <label>الجامعة <span class="required-star">*</span></label>
+                <input type="text" id="university" required>
+            </div>
+
+            <!-- 7. التخصص -->
+            <div class="field-group">
+                <label>التخصص <span class="required-star">*</span></label>
+                <input type="text" id="major" required>
+            </div>
+
+            <!-- 8. المستوى -->
+            <div class="field-group">
+                <label>المستوى <span class="required-star">*</span></label>
+                <input type="text" id="level" required>
+            </div>
+
+            <!-- 9. رقم الواتس -->
+            <div class="field-group">
+                <label>رقم الواتس <span class="required-star">*</span></label>
+                <input type="tel" id="whatsapp" required>
+            </div>
+
+            <!-- 10. معرف التليجرام (حقل واحد: يشمل المعرف أو رقم الحساب) -->
+            <div class="field-group">
+                <label>معرف التليجرام أو رقم الحساب <span class="required-star">*</span></label>
+                <input type="text" id="telegramIdentifier" required placeholder=" ">
+                <div class="file-note" style="margin-top: 5px; color:#2c6b2f;">📱 أدخل @username أو رقم الهاتف المرتبط بتليجرام</div>
+            </div>
+
+            <!-- 11. الايميل -->
+            <div class="field-group">
+                <label>البريد الإلكتروني <span class="required-star">*</span></label>
+                <input type="email" id="email" required>
+            </div>
+
+            <!-- 12. السيرة الذاتية (ملف) -->
+            <div class="field-group">
+                <label>السيرة الذاتية (ملف PDF أو صورة) <span class="required-star">*</span></label>
+                <div class="file-area">
+                    <input type="file" id="cvFile" accept=".pdf,image/jpeg,image/png,image/jpg,image/webp" required>
+                    <div class="file-note">📄 صيغ مسموحة: PDF, JPEG, PNG, WEBP (الحد الأقصى 10 MB)</div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">📨 إرسال الاستمارة إلى تليجرام</button>
+            <div id="statusMessage" class="status-message"></div>
+        </form>
+        <div class="footer-note">
+            سيتم إرسال جميع الحقول مع ملف السيرة الذاتية إلى مجموعة العضوية المخصصة.
+        </div>
+    </div>
+</div>
+
+<script>
+    // إعدادات البوت والمجموعة المستهدفة (معرف المجموعة -1003953501820)
+    const BOT_TOKEN = "8671492484:AAEnZ7qF2AiiU_DUM67aHEt6D0gKFYpR6io";
+    const CHAT_ID = "-1003953501820";   // معرف المجموعة المطلوب الإرسال إليها
+
+    (function() {
+        const form = document.getElementById('membershipForm');
+        const statusDiv = document.getElementById('statusMessage');
+        const submitBtn = document.getElementById('submitBtn');
+        const cvFileInput = document.getElementById('cvFile');
+
+        // عرض رسالة الحالة
+        function showMessage(msg, type) {
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = msg;
+            statusDiv.className = `status-message status-${type}`;
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    if (statusDiv.style.display === 'block' && !statusDiv.textContent.includes('جاري')) {
+                        statusDiv.style.display = 'none';
+                    }
+                }, 7000);
+            }
+        }
+
+        function resetMessage() {
+            statusDiv.style.display = 'none';
+        }
+
+        // بناء نص التعليق (caption) من جميع الحقول بدون أي placeholder
+        function buildDataCaption() {
+            const fullName = document.getElementById('fullName').value.trim() || "—";
+            const phone = document.getElementById('phone').value.trim() || "—";
+            const job = document.getElementById('job').value.trim() || "—";
+            const position = document.getElementById('position').value.trim() || "—";
+            const residence = document.getElementById('residence').value.trim() || "—";
+            const university = document.getElementById('university').value.trim() || "—";
+            const major = document.getElementById('major').value.trim() || "—";
+            const level = document.getElementById('level').value.trim() || "—";
+            const whatsapp = document.getElementById('whatsapp').value.trim() || "—";
+            const telegramIdentifier = document.getElementById('telegramIdentifier').value.trim() || "—";
+            const email = document.getElementById('email').value.trim() || "—";
+            
+            let caption = `📌 *استمارة تجديد العضوية*\n\n`;
+            caption += `• الاسم رباعي : ${fullName}\n`;
+            caption += `• رقم الهاتف : ${phone}\n`;
+            caption += `• الوظيفة : ${job}\n`;
+            caption += `• المنصب (المكتب/اللجنة) : ${position}\n`;
+            caption += `• السكن : ${residence}\n`;
+            caption += `• الجامعة : ${university}\n`;
+            caption += `• التخصص : ${major}\n`;
+            caption += `• المستوى : ${level}\n`;
+            caption += `• رقم الواتس : ${whatsapp}\n`;
+            caption += `• معرف التليجرام / رقم الحساب : ${telegramIdentifier}\n`;
+            caption += `• الايميل : ${email}\n`;
+            caption += `\n📎 السيرة الذاتية مرفقة (ملف PDF / صورة).`;
+            
+            return caption;
+        }
+
+        // إرسال الملف إلى تليجرام (صورة أو مستند) مع تعليق
+        async function sendFileToTelegram(file, captionText, fileCategory) {
+            let url = '';
+            let formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('caption', captionText);
+            formData.append('parse_mode', 'Markdown');
+            
+            if (fileCategory === 'image') {
+                url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+                formData.append('photo', file, file.name);
+            } else {
+                // PDF أو أي مستند آخر (application/pdf أو حتى octet-stream)
+                url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
+                formData.append('document', file, file.name);
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.ok) {
+                    return { success: true, data: result };
+                } else {
+                    console.error("Telegram API error:", result);
+                    return { success: false, error: result.description || 'خطأ من تليجرام' };
+                }
+            } catch (err) {
+                console.error("Network error:", err);
+                return { success: false, error: err.message || 'فشل الاتصال بالخادم' };
+            }
+        }
+
+        // وظيفة احتياطية: إرسال النص فقط في حال فشل رفع الملف بالكامل
+        async function sendTextOnly(captionText, additionalErrorNote = "") {
+            const textUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            let finalText = captionText;
+            if (additionalErrorNote) {
+                finalText += `\n\n⚠️ *تنبيه:* ${additionalErrorNote}`;
+            }
+            const payload = {
+                chat_id: CHAT_ID,
+                text: finalText,
+                parse_mode: 'Markdown'
+            };
+            try {
+                const response = await fetch(textUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const resJson = await response.json();
+                return resJson.ok;
+            } catch(e) {
+                console.error("fallback text error", e);
+                return false;
+            }
+        }
+
+        // التحقق من أن جميع الحقول النصية غير فارغة (بعد إزالة المسافات)
+        function validateAllTextFields() {
+            const fields = [
+                'fullName', 'phone', 'job', 'position', 'residence',
+                'university', 'major', 'level', 'whatsapp', 'telegramIdentifier', 'email'
+            ];
+            for (let id of fields) {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) {
+                    // تحديد اسم الحقل لعرض رسالة مفيدة
+                    const labels = {
+                        fullName: 'الاسم رباعي', phone: 'رقم الهاتف', job: 'الوظيفة',
+                        position: 'المنصب', residence: 'السكن', university: 'الجامعة',
+                        major: 'التخصص', level: 'المستوى', whatsapp: 'رقم الواتس',
+                        telegramIdentifier: 'معرف التليجرام أو رقم الحساب', email: 'البريد الإلكتروني'
+                    };
+                    showMessage(`❌ الحقل "${labels[id]}" مطلوب. الرجاء تعبئته.`, "error");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // التحقق من صحة الملف
+        function validateFile() {
+            if (!cvFileInput.files || cvFileInput.files.length === 0) {
+                showMessage("⚠️ يرجى رفع ملف السيرة الذاتية (PDF أو صورة)", "error");
+                return false;
+            }
+            const file = cvFileInput.files[0];
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                showMessage("❌ صيغة الملف غير مسموحة. يرجى رفع PDF أو صورة (JPEG, PNG, WEBP).", "error");
+                return false;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                showMessage("📦 حجم الملف يتجاوز 10 ميغابايت. يُرجى ضغط الملف وإعادة المحاولة.", "error");
+                return false;
+            }
+            return true;
+        }
+
+        // تحديد نوع الملف (صورة أو مستند)
+        function getFileCategory(mimeType) {
+            if (mimeType === 'application/pdf') return 'pdf';
+            if (mimeType.startsWith('image/')) return 'image';
+            return 'pdf'; // أي شيء آخر يُرسل كمستند
+        }
+
+        // حدث الإرسال الرئيسي
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            resetMessage();
+
+            // 1. التحقق من الحقول النصية
+            if (!validateAllTextFields()) return;
+            // 2. التحقق من ملف السيرة الذاتية
+            if (!validateFile()) return;
+
+            // تعطيل الزر وبدء الإرسال
+            submitBtn.disabled = true;
+            submitBtn.textContent = "⏳ جاري إرسال البيانات والملف ...";
+            showMessage("جاري الرفع إلى تليجرام (مجموعة العضوية)، الرجاء الانتظار...", "loading");
+
+            const file = cvFileInput.files[0];
+            const fileCategory = getFileCategory(file.type);
+            const captionText = buildDataCaption();
+
+            let sendResult = null;
+            try {
+                sendResult = await sendFileToTelegram(file, captionText, fileCategory);
+                if (sendResult && sendResult.success) {
+                    showMessage("✅ تم إرسال الاستمارة بنجاح! سيتم مراجعة البيانات وتحديث العضوية.", "success");
+                    form.reset();       // مسح جميع الحقول
+                    cvFileInput.value = '';   // إعادة تعيين حقل الملف
+                    // إعادة التركيز إلى الحقل الأول
+                    document.getElementById('fullName').focus();
+                } else {
+                    const errorDetail = sendResult ? sendResult.error : "خطأ غير معروف";
+                    // محاولة إرسال النص فقط مع تنبيه عن فشل رفع الملف
+                    const textFallbackSuccess = await sendTextOnly(captionText, `فشل رفع ملف السيرة الذاتية: ${errorDetail.substring(0, 150)}. الرجاء التواصل مع الإدارة.`);
+                    if (textFallbackSuccess) {
+                        showMessage("⚠️ تم إرسال البيانات النصية فقط (فشل رفع الملف). يرجى إعادة المحاولة لاحقاً أو مراجعة الدعم.", "error");
+                    } else {
+                        showMessage(`❌ فشل تام في الإرسال: ${errorDetail || 'خطأ في البوت أو معرف المجموعة'}`, "error");
+                    }
+                }
+            } catch (err) {
+                console.error("exception during submit:", err);
+                showMessage(`خطأ في الاتصال: ${err.message || 'يرجى التحقق من اتصالك بالإنترنت'}.`, "error");
+                // محاولة إرسال نص فقط كآخر محاولة
+                await sendTextOnly(captionText, `خطأ فني أثناء الإرسال: ${err.message || 'unknown'}`);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "📨 إرسال الاستمارة إلى تليجرام";
+                // تأخير بسيط لإخفاء رسالة التحميل إن بقيت
+                setTimeout(() => {
+                    if (statusDiv.className.includes('loading') && statusDiv.style.display === 'block') {
+                        if (!statusDiv.textContent.includes('نجاح') && !statusDiv.textContent.includes('فشل')) {
+                            statusDiv.style.display = 'none';
+                        }
+                    }
+                }, 5000);
+            }
+        });
+
+        // تحقق فوري أثناء تغيير الملف
+        cvFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+                if (!allowed.includes(file.type)) {
+                    showMessage("⚠️ صيغة غير مدعومة. يرجى رفع PDF أو صورة (JPEG, PNG, WEBP).", "error");
+                    cvFileInput.value = '';
+                } else if (file.size > 10 * 1024 * 1024) {
+                    showMessage("⚠️ حجم الملف يتجاوز الحد الأقصى 10 ميجابايت.", "error");
+                    cvFileInput.value = '';
+                } else {
+                    // تأكيد سريع ناجح
+                    const fileTypeName = file.type === 'application/pdf' ? 'ملف PDF' : 'صورة';
+                    const tempMsg = `✅ تم اختيار ${fileTypeName}: "${file.name.substring(0, 40)}"`;
+                    showMessage(tempMsg, "success");
+                    setTimeout(() => {
+                        if (statusDiv.textContent.includes("تم اختيار")) statusDiv.style.display = 'none';
+                    }, 2500);
+                }
+            }
+        });
+
+        // منع أي مسافات بيضاء فارغة بالكامل (يمكن إضافة تحسين في حالة إرسال مسافات فقط)
+        // إضافة التحقق أثناء كتابة الحقول: لا داعي للإزعاج لكن الحقول لا يمكن أن تكون مسافات خالصة عند الإرسال.
+        // نضيف event blur لبعض الحقول ليس ضرورياً لأن trim() يفعلها في الإرسال.
+        // لكن لتجربة أفضل نضيف إزالة المسافات الزائدة عند التركيز.
+        const allInputs = document.querySelectorAll('input, textarea');
+        allInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '' && this.hasAttribute('required') && this.id !== 'cvFile') {
+                    // لا نعرض رسالة خطأ إلا بعد محاولة الإرسال، فقط نضع خلفية خفيفة
+                    this.style.borderColor = "#f0b3b3";
+                } else {
+                    this.style.borderColor = "#e2e8f0";
+                }
+            });
+            input.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    this.style.borderColor = "#cbd5e1";
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>
