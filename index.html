@@ -147,6 +147,12 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .status-message {
             margin-top: 20px;
             padding: 14px 18px;
@@ -322,7 +328,17 @@
             statusDiv.style.display = 'none';
         }
 
-        // بناء نص التعليق (caption) من جميع الحقول بدون أي placeholder
+        // دالة لتشفير HTML لمنع مشاكل التحليل
+        function escapeHTML(str) {
+            if (!str) return str;
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
+        // بناء نص التعليق (caption) من جميع الحقول باستخدام HTML
         function buildDataCaption() {
             const fullName = document.getElementById('fullName').value.trim() || "—";
             const phone = document.getElementById('phone').value.trim() || "—";
@@ -336,18 +352,18 @@
             const telegramIdentifier = document.getElementById('telegramIdentifier').value.trim() || "—";
             const email = document.getElementById('email').value.trim() || "—";
             
-            let caption = `📌 *استمارة تجديد العضوية*\n\n`;
-            caption += `• الاسم رباعي : ${fullName}\n`;
-            caption += `• رقم الهاتف : ${phone}\n`;
-            caption += `• الوظيفة : ${job}\n`;
-            caption += `• المنصب (المكتب/اللجنة) : ${position}\n`;
-            caption += `• السكن : ${residence}\n`;
-            caption += `• الجامعة : ${university}\n`;
-            caption += `• التخصص : ${major}\n`;
-            caption += `• المستوى : ${level}\n`;
-            caption += `• رقم الواتس : ${whatsapp}\n`;
-            caption += `• معرف التليجرام / رقم الحساب : ${telegramIdentifier}\n`;
-            caption += `• الايميل : ${email}\n`;
+            let caption = `<b>📌 استمارة تجديد العضوية</b>\n\n`;
+            caption += `• <b>الاسم رباعي</b> : ${escapeHTML(fullName)}\n`;
+            caption += `• <b>رقم الهاتف</b> : ${escapeHTML(phone)}\n`;
+            caption += `• <b>الوظيفة</b> : ${escapeHTML(job)}\n`;
+            caption += `• <b>المنصب (المكتب/اللجنة)</b> : ${escapeHTML(position)}\n`;
+            caption += `• <b>السكن</b> : ${escapeHTML(residence)}\n`;
+            caption += `• <b>الجامعة</b> : ${escapeHTML(university)}\n`;
+            caption += `• <b>التخصص</b> : ${escapeHTML(major)}\n`;
+            caption += `• <b>المستوى</b> : ${escapeHTML(level)}\n`;
+            caption += `• <b>رقم الواتس</b> : ${escapeHTML(whatsapp)}\n`;
+            caption += `• <b>معرف التليجرام / رقم الحساب</b> : ${escapeHTML(telegramIdentifier)}\n`;
+            caption += `• <b>الايميل</b> : ${escapeHTML(email)}\n`;
             caption += `\n📎 السيرة الذاتية مرفقة (ملف PDF / صورة).`;
             
             return caption;
@@ -359,13 +375,12 @@
             let formData = new FormData();
             formData.append('chat_id', CHAT_ID);
             formData.append('caption', captionText);
-            formData.append('parse_mode', 'Markdown');
+            formData.append('parse_mode', 'HTML');  // تغيير إلى HTML
             
             if (fileCategory === 'image') {
                 url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
                 formData.append('photo', file, file.name);
             } else {
-                // PDF أو أي مستند آخر (application/pdf أو حتى octet-stream)
                 url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
                 formData.append('document', file, file.name);
             }
@@ -393,12 +408,12 @@
             const textUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
             let finalText = captionText;
             if (additionalErrorNote) {
-                finalText += `\n\n⚠️ *تنبيه:* ${additionalErrorNote}`;
+                finalText += `\n\n⚠️ <b>تنبيه:</b> ${escapeHTML(additionalErrorNote)}`;
             }
             const payload = {
                 chat_id: CHAT_ID,
                 text: finalText,
-                parse_mode: 'Markdown'
+                parse_mode: 'HTML'  // تغيير إلى HTML
             };
             try {
                 const response = await fetch(textUrl, {
@@ -423,7 +438,6 @@
             for (let id of fields) {
                 const el = document.getElementById(id);
                 if (!el.value.trim()) {
-                    // تحديد اسم الحقل لعرض رسالة مفيدة
                     const labels = {
                         fullName: 'الاسم رباعي', phone: 'رقم الهاتف', job: 'الوظيفة',
                         position: 'المنصب', residence: 'السكن', university: 'الجامعة',
@@ -460,7 +474,7 @@
         function getFileCategory(mimeType) {
             if (mimeType === 'application/pdf') return 'pdf';
             if (mimeType.startsWith('image/')) return 'image';
-            return 'pdf'; // أي شيء آخر يُرسل كمستند
+            return 'pdf';
         }
 
         // حدث الإرسال الرئيسي
@@ -468,12 +482,9 @@
             event.preventDefault();
             resetMessage();
 
-            // 1. التحقق من الحقول النصية
             if (!validateAllTextFields()) return;
-            // 2. التحقق من ملف السيرة الذاتية
             if (!validateFile()) return;
 
-            // تعطيل الزر وبدء الإرسال
             submitBtn.disabled = true;
             submitBtn.textContent = "⏳ جاري إرسال البيانات والملف ...";
             showMessage("جاري الرفع إلى تليجرام (مجموعة العضوية)، الرجاء الانتظار...", "loading");
@@ -487,13 +498,11 @@
                 sendResult = await sendFileToTelegram(file, captionText, fileCategory);
                 if (sendResult && sendResult.success) {
                     showMessage("✅ تم إرسال الاستمارة بنجاح! سيتم مراجعة البيانات وتحديث العضوية.", "success");
-                    form.reset();       // مسح جميع الحقول
-                    cvFileInput.value = '';   // إعادة تعيين حقل الملف
-                    // إعادة التركيز إلى الحقل الأول
+                    form.reset();
+                    cvFileInput.value = '';
                     document.getElementById('fullName').focus();
                 } else {
                     const errorDetail = sendResult ? sendResult.error : "خطأ غير معروف";
-                    // محاولة إرسال النص فقط مع تنبيه عن فشل رفع الملف
                     const textFallbackSuccess = await sendTextOnly(captionText, `فشل رفع ملف السيرة الذاتية: ${errorDetail.substring(0, 150)}. الرجاء التواصل مع الإدارة.`);
                     if (textFallbackSuccess) {
                         showMessage("⚠️ تم إرسال البيانات النصية فقط (فشل رفع الملف). يرجى إعادة المحاولة لاحقاً أو مراجعة الدعم.", "error");
@@ -504,12 +513,10 @@
             } catch (err) {
                 console.error("exception during submit:", err);
                 showMessage(`خطأ في الاتصال: ${err.message || 'يرجى التحقق من اتصالك بالإنترنت'}.`, "error");
-                // محاولة إرسال نص فقط كآخر محاولة
                 await sendTextOnly(captionText, `خطأ فني أثناء الإرسال: ${err.message || 'unknown'}`);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "📨 إرسال الاستمارة إلى تليجرام";
-                // تأخير بسيط لإخفاء رسالة التحميل إن بقيت
                 setTimeout(() => {
                     if (statusDiv.className.includes('loading') && statusDiv.style.display === 'block') {
                         if (!statusDiv.textContent.includes('نجاح') && !statusDiv.textContent.includes('فشل')) {
@@ -532,7 +539,6 @@
                     showMessage("⚠️ حجم الملف يتجاوز الحد الأقصى 10 ميجابايت.", "error");
                     cvFileInput.value = '';
                 } else {
-                    // تأكيد سريع ناجح
                     const fileTypeName = file.type === 'application/pdf' ? 'ملف PDF' : 'صورة';
                     const tempMsg = `✅ تم اختيار ${fileTypeName}: "${file.name.substring(0, 40)}"`;
                     showMessage(tempMsg, "success");
@@ -543,15 +549,11 @@
             }
         });
 
-        // منع أي مسافات بيضاء فارغة بالكامل (يمكن إضافة تحسين في حالة إرسال مسافات فقط)
-        // إضافة التحقق أثناء كتابة الحقول: لا داعي للإزعاج لكن الحقول لا يمكن أن تكون مسافات خالصة عند الإرسال.
-        // نضيف event blur لبعض الحقول ليس ضرورياً لأن trim() يفعلها في الإرسال.
-        // لكن لتجربة أفضل نضيف إزالة المسافات الزائدة عند التركيز.
+        // تحسينات على الحقول
         const allInputs = document.querySelectorAll('input, textarea');
         allInputs.forEach(input => {
             input.addEventListener('blur', function() {
                 if (this.value.trim() === '' && this.hasAttribute('required') && this.id !== 'cvFile') {
-                    // لا نعرض رسالة خطأ إلا بعد محاولة الإرسال، فقط نضع خلفية خفيفة
                     this.style.borderColor = "#f0b3b3";
                 } else {
                     this.style.borderColor = "#e2e8f0";
