@@ -159,6 +159,12 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .status-message {
             margin-top: 20px;
             padding: 14px 18px;
@@ -328,7 +334,17 @@
             statusDiv.style.display = 'none';
         }
 
-        // بناء نص التعليق (caption) من جميع الحقول - حقل التليجرام موحد
+        // دالة لتشفير HTML لمنع مشاكل التحليل
+        function escapeHTML(str) {
+            if (!str) return str;
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
+        // بناء نص التعليق (caption) من جميع الحقول باستخدام HTML
         function buildDataCaption() {
             const fullName = document.getElementById('fullName').value.trim() || "—";
             const universityWork = document.getElementById('universityWork').value.trim() || "—";
@@ -341,17 +357,17 @@
             const email = document.getElementById('email').value.trim() || "—";
             const desiredOffice = document.getElementById('desiredOffice').value.trim() || "—";
             
-            let caption = `📌 *استمارة التسجيل المبدئي*\n\n`;
-            caption += `• الاسم رباعي : ${fullName}\n`;
-            caption += `• الجامعة/جهة العمل : ${universityWork}\n`;
-            caption += `• الوظيفة إن وجدت : ${job}\n`;
-            caption += `• السكن : ${residence}\n`;
-            caption += `• الكلية : ${college}\n`;
-            caption += `• المستوى : ${level}\n`;
-            caption += `• رقم الهاتف : ${phone}\n`;
-            caption += `• معرف التليجرام / رقم الحساب : ${telegramIdentifier}\n`;
-            caption += `• الايميل : ${email}\n`;
-            caption += `• المكتب الذي تود العمل به / اللجنة : ${desiredOffice}\n`;
+            let caption = `<b>📌 استمارة التسجيل المبدئي</b>\n\n`;
+            caption += `• <b>الاسم رباعي</b> : ${escapeHTML(fullName)}\n`;
+            caption += `• <b>الجامعة/جهة العمل</b> : ${escapeHTML(universityWork)}\n`;
+            caption += `• <b>الوظيفة إن وجدت</b> : ${escapeHTML(job)}\n`;
+            caption += `• <b>السكن</b> : ${escapeHTML(residence)}\n`;
+            caption += `• <b>الكلية</b> : ${escapeHTML(college)}\n`;
+            caption += `• <b>المستوى</b> : ${escapeHTML(level)}\n`;
+            caption += `• <b>رقم الهاتف</b> : ${escapeHTML(phone)}\n`;
+            caption += `• <b>معرف التليجرام / رقم الحساب</b> : ${escapeHTML(telegramIdentifier)}\n`;
+            caption += `• <b>الايميل</b> : ${escapeHTML(email)}\n`;
+            caption += `• <b>المكتب الذي تود العمل به / اللجنة</b> : ${escapeHTML(desiredOffice)}\n`;
             caption += `\n📎 السيرة الذاتية مرفقة (ملف PDF / صورة).`;
             
             return caption;
@@ -363,13 +379,12 @@
             let formData = new FormData();
             formData.append('chat_id', CHAT_ID);
             formData.append('caption', captionText);
-            formData.append('parse_mode', 'Markdown');
+            formData.append('parse_mode', 'HTML');  // تغيير إلى HTML
             
             if (fileCategory === 'image') {
                 url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
                 formData.append('photo', file, file.name);
             } else {
-                // PDF أو أي مستند آخر
                 url = `https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`;
                 formData.append('document', file, file.name);
             }
@@ -397,12 +412,12 @@
             const textUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
             let finalText = captionText;
             if (additionalErrorNote) {
-                finalText += `\n\n⚠️ *تنبيه:* ${additionalErrorNote}`;
+                finalText += `\n\n⚠️ <b>تنبيه:</b> ${escapeHTML(additionalErrorNote)}`;
             }
             const payload = {
                 chat_id: CHAT_ID,
                 text: finalText,
-                parse_mode: 'Markdown'
+                parse_mode: 'HTML'  // تغيير إلى HTML
             };
             try {
                 const response = await fetch(textUrl, {
@@ -471,12 +486,9 @@
             event.preventDefault();
             resetMessage();
 
-            // 1. التحقق من الحقول النصية
             if (!validateAllTextFields()) return;
-            // 2. التحقق من ملف السيرة الذاتية
             if (!validateFile()) return;
 
-            // تعطيل الزر وبدء الإرسال
             submitBtn.disabled = true;
             submitBtn.textContent = "⏳ جاري إرسال البيانات والملف ...";
             showMessage("جاري الرفع إلى تليجرام (مجموعة التسجيل)، الرجاء الانتظار...", "loading");
@@ -490,8 +502,8 @@
                 sendResult = await sendFileToTelegram(file, captionText, fileCategory);
                 if (sendResult && sendResult.success) {
                     showMessage("✅ تم إرسال استمارة التسجيل المبدئي بنجاح! سيتم مراجعة طلبك قريباً.", "success");
-                    form.reset();       // مسح جميع الحقول
-                    cvFileInput.value = '';   // إعادة تعيين حقل الملف
+                    form.reset();
+                    cvFileInput.value = '';
                     document.getElementById('fullName').focus();
                 } else {
                     const errorDetail = sendResult ? sendResult.error : "خطأ غير معروف";
