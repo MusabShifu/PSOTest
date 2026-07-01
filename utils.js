@@ -1,34 +1,52 @@
-// عرض رسالة الحالة
-function showMessage(statusDiv, msg, type, isSuccessWithGroup = false) {
+// عرض رسالة الحالة - نسخة مبسطة للتحميل
+function showLoadingMessage(statusDiv, msg) {
     statusDiv.style.display = 'block';
-    statusDiv.className = `status-message status-${type}`;
-
-    if (isSuccessWithGroup) {
-        statusDiv.innerHTML = `
-            <div class="success-container">
-                <div class="main-icon">✅</div>
-                <div class="main-text">تم استلام ردك</div>
-                <div class="sub-text">${msg}</div>
-                <a href="${TELEGRAM_GROUP_LINK}" target="_blank" class="success-group-link">
-                    📱 الرجاء الانضمام لهذه المجموعة
-                </a>
-            </div>
-        `;
-    } else {
-        statusDiv.textContent = msg;
-    }
-
-    if (type !== 'loading' && !isSuccessWithGroup) {
-        setTimeout(() => {
-            if (statusDiv.style.display === 'block' && !statusDiv.textContent.includes('جاري')) {
-                statusDiv.style.display = 'none';
-            }
-        }, 7000);
-    }
+    statusDiv.className = 'status-message status-loading';
+    statusDiv.textContent = msg;
 }
 
-function resetMessage(statusDiv) {
+// إخفاء رسالة الحالة
+function hideMessage(statusDiv) {
     statusDiv.style.display = 'none';
+}
+
+// عرض رسالة الخطأ
+function showError(statusDiv, msg) {
+    statusDiv.style.display = 'block';
+    statusDiv.className = 'status-message status-error';
+    statusDiv.textContent = msg;
+    setTimeout(() => {
+        if (statusDiv.style.display === 'block') {
+            statusDiv.style.display = 'none';
+        }
+    }, 7000);
+}
+
+// عرض صفحة النجاح (إخفاء النموذج بالكامل)
+function showSuccessPage(formContainer, formBody, statusDiv) {
+    // إخفاء النموذج بالكامل
+    formBody.style.display = 'none';
+    
+    // إخفاء رسالة الحالة القديمة
+    statusDiv.style.display = 'none';
+    
+    // إنشاء صفحة النجاح
+    const successHTML = `
+        <div class="success-container" id="successPage">
+            <div class="main-icon">✅</div>
+            <div class="main-text">تم استلام ردك</div>
+            <div class="sub-text">شكراً لتسجيلك، يرجى الانضمام إلى المجموعة</div>
+            <a href="${TELEGRAM_GROUP_LINK}" target="_blank" class="success-group-link">
+                📱 الرجاء الانضمام لهذه المجموعة
+            </a>
+            <div style="margin-top: 20px; font-size: 0.85rem; color: #7a8a9a;">
+                سيتم مراجعة طلبك قريباً
+            </div>
+        </div>
+    `;
+    
+    // إضافة صفحة النجاح بعد النموذج
+    formContainer.insertAdjacentHTML('beforeend', successHTML);
 }
 
 // إرسال الملف إلى تليجرام
@@ -92,19 +110,19 @@ async function sendTextOnly(captionText, additionalErrorNote = "") {
 }
 
 // التحقق من صحة الملف
-function validateFile(cvFileInput, showMessageFn) {
+function validateFile(cvFileInput, showErrorFn) {
     if (!cvFileInput.files || cvFileInput.files.length === 0) {
-        showMessageFn("⚠️ يرجى رفع ملف السيرة الذاتية (PDF أو صورة)", "error");
+        showErrorFn("⚠️ يرجى رفع ملف السيرة الذاتية (PDF أو صورة)");
         return false;
     }
     const file = cvFileInput.files[0];
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-        showMessageFn("❌ صيغة الملف غير مسموحة. يرجى رفع PDF أو صورة (JPEG, PNG, WEBP).", "error");
+        showErrorFn("❌ صيغة الملف غير مسموحة. يرجى رفع PDF أو صورة (JPEG, PNG, WEBP).");
         return false;
     }
     if (file.size > 10 * 1024 * 1024) {
-        showMessageFn("📦 حجم الملف يتجاوز 10 ميغابايت. يُرجى ضغط الملف وإعادة المحاولة.", "error");
+        showErrorFn("📦 حجم الملف يتجاوز 10 ميغابايت. يُرجى ضغط الملف وإعادة المحاولة.");
         return false;
     }
     return true;

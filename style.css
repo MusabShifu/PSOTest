@@ -48,6 +48,7 @@ body {
 
 .form-body {
     padding: 2rem 2rem 2rem 2rem;
+    position: relative;
 }
 
 .field-group {
@@ -204,46 +205,54 @@ button:disabled {
 
 .success-group-link {
     display: inline-block;
-    margin-top: 12px;
-    padding: 14px 28px;
+    margin-top: 15px;
+    padding: 16px 32px;
     background: #1e6a9f;
     color: white;
     border-radius: 50px;
     text-decoration: none;
     font-weight: bold;
-    font-size: 1.1rem;
-    transition: 0.2s;
-    box-shadow: 0 4px 12px rgba(30, 106, 159, 0.3);
+    font-size: 1.15rem;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(30, 106, 159, 0.4);
 }
 
 .success-group-link:hover {
     background: #0f4668;
-    transform: scale(1.03);
-    box-shadow: 0 6px 20px rgba(30, 106, 159, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(30, 106, 159, 0.5);
 }
 
 .success-container {
     text-align: center;
     direction: rtl;
-    padding: 10px 0;
+    padding: 30px 20px;
 }
 
 .success-container .main-icon {
-    font-size: 2.5rem;
-    margin-bottom: 8px;
+    font-size: 3.5rem;
+    margin-bottom: 15px;
 }
 
 .success-container .main-text {
-    font-size: 1.3rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: #1e6f3f;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 
 .success-container .sub-text {
-    font-size: 1rem;
-    color: #1e6f3f;
-    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #2c5a3e;
+    margin-bottom: 15px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
 }
 
 @media (max-width: 600px) {
@@ -254,8 +263,11 @@ button:disabled {
         font-size: 1.5rem;
     }
     .success-group-link {
-        font-size: 0.95rem;
-        padding: 12px 20px;
+        font-size: 1rem;
+        padding: 14px 20px;
         display: block;
+    }
+    .success-container .main-text {
+        font-size: 1.4rem;
     }
 }

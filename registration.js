@@ -3,10 +3,11 @@
     const statusDiv = document.getElementById('statusMessage');
     const submitBtn = document.getElementById('submitBtn');
     const cvFileInput = document.getElementById('cvFile');
+    const formContainer = document.querySelector('.form-container');
+    const formBody = document.querySelector('.form-body');
 
-    // دالة عرض الرسالة الخاصة
-    function showMessageFn(msg, type, isSuccessWithGroup = false) {
-        showMessage(statusDiv, msg, type, isSuccessWithGroup);
+    function showErrorFn(msg) {
+        showError(statusDiv, msg);
     }
 
     function buildDataCaption() {
@@ -56,7 +57,7 @@
         for (let id of fields) {
             const el = document.getElementById(id);
             if (!el.value.trim()) {
-                showMessageFn(`❌ الحقل "${labels[id]}" مطلوب. الرجاء تعبئته.`, "error");
+                showErrorFn(`❌ الحقل "${labels[id]}" مطلوب. الرجاء تعبئته.`);
                 return false;
             }
         }
@@ -65,14 +66,17 @@
 
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
-        resetMessage(statusDiv);
 
         if (!validateAllTextFields()) return;
-        if (!validateFile(cvFileInput, showMessageFn)) return;
+        if (!validateFile(cvFileInput, showErrorFn)) return;
 
+        // إخفاء رسائل الخطأ السابقة
+        hideMessage(statusDiv);
+        
+        // تعطيل الزر وإظهار رسالة التحميل
         submitBtn.disabled = true;
-        submitBtn.textContent = "⏳ جاري إرسال البيانات والملف ...";
-        showMessageFn("جاري الرفع إلى تليجرام (مجموعة التسجيل)، الرجاء الانتظار...", "loading");
+        submitBtn.textContent = "⏳ جاري إرسال البيانات ...";
+        showLoadingMessage(statusDiv, "جاري الرفع إلى تليجرام، الرجاء الانتظار...");
 
         const file = cvFileInput.files[0];
         const fileCategory = getFileCategory(file.type);
@@ -82,58 +86,49 @@
         try {
             sendResult = await sendFileToTelegram(file, captionText, fileCategory);
             if (sendResult && sendResult.success) {
-                showMessageFn("", "success", true);
-                form.reset();
-                cvFileInput.value = '';
-                document.getElementById('fullName').focus();
+                // ✅ نجاح: إخفاء النموذج بالكامل وعرض صفحة النجاح
+                showSuccessPage(formContainer, formBody, statusDiv);
             } else {
                 const errorDetail = sendResult ? sendResult.error : "خطأ غير معروف";
                 const textFallbackSuccess = await sendTextOnly(captionText,
                     `فشل رفع ملف السيرة الذاتية: ${errorDetail.substring(0, 150)}. الرجاء التواصل مع الإدارة.`
                 );
                 if (textFallbackSuccess) {
-                    showMessageFn("⚠️ تم إرسال البيانات النصية فقط (فشل رفع الملف). يرجى إعادة المحاولة لاحقاً.", "error");
+                    showErrorFn("⚠️ تم إرسال البيانات النصية فقط (فشل رفع الملف). يرجى إعادة المحاولة لاحقاً.");
                 } else {
-                    showMessageFn(`❌ فشل تام في الإرسال: ${errorDetail || 'خطأ في البوت أو معرف المجموعة'}`, "error");
+                    showErrorFn(`❌ فشل تام في الإرسال: ${errorDetail || 'خطأ في البوت أو معرف المجموعة'}`);
                 }
+                submitBtn.disabled = false;
+                submitBtn.textContent = "📨 إرسال الاستمارة إلى تليجرام";
             }
         } catch (err) {
             console.error("exception during submit:", err);
-            showMessageFn(`خطأ في الاتصال: ${err.message || 'يرجى التحقق من اتصالك بالإنترنت'}.`, "error");
+            showErrorFn(`خطأ في الاتصال: ${err.message || 'يرجى التحقق من اتصالك بالإنترنت'}.`);
             await sendTextOnly(captionText, `خطأ فني أثناء الإرسال: ${err.message || 'unknown'}`);
-        } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = "📨 إرسال الاستمارة إلى تليجرام";
-            setTimeout(() => {
-                if (statusDiv.className.includes('loading') && statusDiv.style.display === 'block') {
-                    if (!statusDiv.textContent.includes('نجاح') && !statusDiv.textContent.includes('فشل')) {
-                        statusDiv.style.display = 'none';
-                    }
-                }
-            }, 5000);
         }
     });
 
+    // تحقق فوري أثناء تغيير الملف
     cvFileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
             if (!allowed.includes(file.type)) {
-                showMessageFn("⚠️ صيغة غير مدعومة. يرجى رفع PDF أو صورة (JPEG, PNG, WEBP).", "error");
+                showErrorFn("⚠️ صيغة غير مدعومة. يرجى رفع PDF أو صورة (JPEG, PNG, WEBP).");
                 cvFileInput.value = '';
             } else if (file.size > 10 * 1024 * 1024) {
-                showMessageFn("⚠️ حجم الملف يتجاوز الحد الأقصى 10 ميجابايت.", "error");
+                showErrorFn("⚠️ حجم الملف يتجاوز الحد الأقصى 10 ميجابايت.");
                 cvFileInput.value = '';
             } else {
-                const fileTypeName = file.type === 'application/pdf' ? 'ملف PDF' : 'صورة';
-                showMessageFn(`✅ تم اختيار ${fileTypeName}: "${file.name.substring(0, 45)}"`, "success");
-                setTimeout(() => {
-                    if (statusDiv.textContent.includes("تم اختيار")) statusDiv.style.display = 'none';
-                }, 2500);
+                // إخفاء رسالة الخطأ إذا كانت موجودة
+                hideMessage(statusDiv);
             }
         }
     });
 
+    // تحسينات على الحقول
     const allInputs = document.querySelectorAll('input, textarea');
     allInputs.forEach(input => {
         input.addEventListener('blur', function() {
