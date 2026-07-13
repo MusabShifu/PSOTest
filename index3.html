@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting...</title>
-    <!-- Include Telegram Web App SDK -->
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -37,66 +37,54 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         h2 { color: #1a1a2e; margin: 0 0 10px; }
-        p { color: #5a5a7a; margin: 0 0 5px; }
+        p { color: #5a5a7a; margin: 5px 0; }
         .id-display {
             background: #f4f4f9;
             padding: 12px;
             border-radius: 12px;
             font-weight: 600;
             color: #1a1a2e;
-            margin: 15px 0 20px;
+            margin: 15px 0 10px;
             word-break: break-all;
         }
-        .btn {
-            background: #4a6cf7;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #3a5de0; }
         .error { color: #e53e3e; margin-top: 15px; }
+        .small { font-size: 0.85rem; color: #888; }
     </style>
 </head>
 <body>
     <div class="container" id="app">
-        <div class="spinner"></div>
-        <h2>📋 Loading Membership</h2>
-        <p>Detecting your Telegram ID...</p>
+        <div class="spinner" id="spinner"></div>
+        <h2>📋 Redirecting...</h2>
+        <p>Detecting your Telegram ID</p>
         <div id="idDisplay" class="id-display">—</div>
-        <button id="redirectBtn" class="btn" style="display: none;">Continue to Form</button>
+        <div id="statusMsg" class="small">Please wait...</div>
         <div id="errorMsg" class="error"></div>
     </div>
 
     <script>
         (function() {
-            // Your Google Form base URL (replace xxxxxxx with placeholder)
+            // --- Your Google Form URL with placeholder ---
             const BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdzwTE-PcIOa0AvbtdTtvitwujLpI4rcvrOIYXuh0iLBujYjw/viewform?usp=pp_url&entry.966732168=xxxxxxx";
 
             const idDisplay = document.getElementById('idDisplay');
-            const redirectBtn = document.getElementById('redirectBtn');
+            const spinner = document.getElementById('spinner');
+            const statusMsg = document.getElementById('statusMsg');
             const errorMsg = document.getElementById('errorMsg');
-            const spinner = document.querySelector('.spinner');
 
             let userId = null;
 
-            // --- Step 1: Try to get ID from Telegram Web App ---
+            // --- Step 1: Try Telegram Web App (Mini App) ---
             if (window.Telegram && window.Telegram.WebApp) {
                 const webApp = window.Telegram.WebApp;
                 const user = webApp.initDataUnsafe?.user;
                 if (user && user.id) {
                     userId = user.id;
                 }
-                // Expand the Mini App to full height (optional but nice)
-                webApp.expand();
+                webApp.expand(); // Make it full screen
+                webApp.ready();
             }
 
-            // --- Step 2: Fallback - Check URL parameter (e.g., ?tg_id=123) ---
+            // --- Step 2: Fallback to URL parameter (e.g., ?tg_id=123) ---
             if (!userId) {
                 const params = new URLSearchParams(window.location.search);
                 const idParam = params.get('tg_id') || params.get('id');
@@ -105,39 +93,25 @@
                 }
             }
 
-            // --- Step 3: Handle the result ---
+            // --- Step 3: Auto-redirect or show error ---
             if (userId) {
-                // Display the detected ID
                 idDisplay.textContent = `✅ ${userId}`;
+                statusMsg.textContent = `Redirecting to membership form...`;
 
                 // Build the final URL
                 const finalUrl = BASE_URL.replace('xxxxxxx', userId);
 
-                // Hide spinner, show button
-                spinner.style.display = 'none';
-                redirectBtn.style.display = 'block';
-
-                // Redirect on button click
-                redirectBtn.addEventListener('click', function() {
-                    redirectBtn.disabled = true;
-                    redirectBtn.textContent = 'Redirecting...';
+                // Redirect after a tiny delay (so user sees the ID was detected)
+                setTimeout(function() {
                     window.location.href = finalUrl;
-                });
-
-                // OPTIONAL: Auto-redirect after 1.5 seconds if you don't want the button
-                // setTimeout(() => { window.location.href = finalUrl; }, 1500);
+                }, 800); // 0.8 second delay (you can reduce to 200ms if you want)
 
             } else {
-                // No ID found anywhere
+                // No ID found — show error
                 spinner.style.display = 'none';
                 errorMsg.textContent = '❌ Could not detect your Telegram ID. Please open this page directly from the Telegram bot.';
                 idDisplay.textContent = '⚠️ Not detected';
-                // Optionally, show a manual input field here as a last resort.
-            }
-
-            // Close Web App if user clicks back (optional)
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
+                statusMsg.textContent = 'Try using the /start command in the bot again.';
             }
         })();
     </script>
